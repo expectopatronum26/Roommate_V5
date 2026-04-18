@@ -380,8 +380,92 @@ def edit_post(post_id):
     if request.method == "GET":
         return render_template("edit.html", post=post, form_data={})
 
-    # ... 后续代码与第一个人的一样，省略 ...
-    # （完整代码太长，这里保持第一个人的edit逻辑）
+    title = (request.form.get("title") or "").strip()
+    rent = _to_decimal(request.form.get("rent"))
+    location = (request.form.get("location") or "").strip()
+    nearby_school = (request.form.get("nearby_school") or "").strip()
+    community_name = (request.form.get("community_name") or "").strip()
+    layout = (request.form.get("layout") or "").strip()
+    area = _to_decimal(request.form.get("area"))
+    poster_intro = (request.form.get("poster_intro") or "").strip()
+    expected_schedule = (request.form.get("expected_schedule") or "").strip()
+    cleaning_frequency = (request.form.get("cleaning_frequency") or "").strip()
+    custom_requirements = (request.form.get("custom_requirements") or "").strip()
+    hobbies_clean = _normalize_hobbies(request.form.get("hobbies", ""))
+
+    if not title or rent is None or not location:
+        flash("标题、月租和位置为必填项")
+        return render_template("edit.html", post=post, form_data=request.form), 400
+
+    post.title = title
+    post.rent = rent
+    post.location = location
+    post.nearby_school = nearby_school or None
+    post.community_name = community_name or None
+    post.layout = layout or None
+    post.area = area
+    post.poster_intro = poster_intro or None
+    post.expected_schedule = expected_schedule or None
+    post.cleaning_frequency = cleaning_frequency or None
+    post.custom_requirements = custom_requirements or None
+    post.hobbies = hobbies_clean
+
+    uploaded_files = [
+        file
+        for file in request.files.getlist("images")
+        if file and (file.filename or "").strip()
+    ]
+
+    if uploaded_files:
+        if len(uploaded_files) > 6:
+            flash("最多上传6张")
+            return render_template("edit.html", post=post, form_data=request.form), 400
+
+        allowed_extensions = {"jpg", "jpeg", "png", "webp"}
+        upload_folder = current_app.config.get("UPLOAD_FOLDER") or os.path.join(
+            current_app.root_path, "static", "uploads"
+        )
+        os.makedirs(upload_folder, exist_ok=True)
+
+        saved_images = []
+        for index, file in enumerate(uploaded_files):
+            original_filename = file.filename or ""
+            if "." not in original_filename:
+                flash("只接受jpg/jpeg/png/webp格式")
+                return render_template("edit.html", post=post, form_data=request.form), 400
+
+            ext = original_filename.rsplit(".", 1)[1].lower()
+            if ext not in allowed_extensions:
+                flash("只接受jpg/jpeg/png/webp格式")
+                return render_template("edit.html", post=post, form_data=request.form), 400
+
+            file.stream.seek(0, os.SEEK_END)
+            file_size = file.stream.tell()
+            file.stream.seek(0)
+            if file_size > 5 * 1024 * 1024:
+                flash("图片太大，请压缩后再上传")
+                return render_template("edit.html", post=post, form_data=request.form), 400
+
+            new_filename = secure_filename(f"{uuid4().hex}.{ext}")
+            save_path = os.path.join(upload_folder, new_filename)
+            file.save(save_path)
+            saved_images.append((index, f"/static/uploads/{new_filename}"))
+
+        old_images = post.images.order_by(PostImage.sort_order.asc(), PostImage.id.asc()).all()
+        for image in old_images:
+            _delete_local_image_file(image.image_url)
+            db.session.delete(image)
+
+        for index, image_url in saved_images:
+            db.session.add(
+                PostImage(
+                    post_id=post.id,
+                    image_url=image_url,
+                    sort_order=index,
+                )
+            )
+
+    db.session.commit()
 
     flash("帖子更新成功")
     return redirect(url_for("posts.post_detail", post_id=post.id))

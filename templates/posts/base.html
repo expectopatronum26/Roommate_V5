@@ -26,8 +26,8 @@
     </style>
 </head>
 <body>
+{% include "navbar.html" %}
 <div class="container">
-    <h1><a href="{{ url_for('posts.list_posts') }}">找室友 Web App</a></h1>
 
     {% with messages = get_flashed_messages() %}
         {% if messages %}
