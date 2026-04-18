@@ -63,7 +63,7 @@
             <button type="submit" class="btn-action btn-favorite">收藏</button>
         {% endif %}
     </form>
-        <a href="{{ url_for('chat.chat_with_contact', contact_id=post.user_id) }}"
+        <a href="{{ url_for('chat.chat_with_contact', contact_id=post.user_id, post_id=post.id) }}"
         class="contact-btn">
             私信
         </a>

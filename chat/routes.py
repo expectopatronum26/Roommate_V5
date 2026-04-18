@@ -139,6 +139,14 @@ def chat_with_contact(contact_id):
     current_user_id = _current_user_id()
     current_contact = User.query.get_or_404(contact_id)
 
+    post_id = request.args.get('post_id', type=int)
+    house_info = None
+    if post_id:
+        from models import Post
+        post = Post.query.get(post_id)
+        if post:
+            house_info = post
+
     # 获取所有联系人（同上）
     sent_to = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
     received_from = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
@@ -180,7 +188,8 @@ def chat_with_contact(contact_id):
                            contacts=contacts,
                            current_contact=current_contact,
                            messages=messages_dict,
-                           current_user_id=current_user_id)
+                           current_user_id=current_user_id,
+                           house_info=house_info)
 
 
 @chat_bp.route('/api/messages/<int:contact_id>', methods=['GET'])

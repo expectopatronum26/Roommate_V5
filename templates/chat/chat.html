@@ -416,7 +416,7 @@
                        class="contact-item {% if current_contact and current_contact.id == contact.id %}active{% endif %}">
                         <div class="contact-avatar"><img src="{{ contact.avatar }}" alt="头像"></div>
                         <div class="contact-info">
-                            <div class="contact-name">{{ contact.name }}</div>
+                            <div class="contact-name">{{ contact.nickname or contact.username }}</div>
                             <div class="contact-last-msg">{{ contact.last_message or '暂无消息' }}</div></div>
                         <div class="contact-time">
                             {{ contact.last_message_time.strftime('%H:%M') if contact.last_message_time else '' }}
@@ -439,20 +439,20 @@
                     <div class="header-left">
                         <div class="contact-avatar"><img src="{{ current_contact.avatar }}" alt="头像"></div>
                         <div class="header-info">
-                            <div class="header-contact-name">{{ current_contact.name }}</div>
+                            <div class="header-contact-name">{{ current_contact.nickname or current_contact.username }}</div>
                             <!-- 房源信息 -->
                             <div class="header-house-info">
                                 <div class="house-info-item">
                                     <span>🏠</span>
-                                    <span>{{ current_contact.house_title }}</span>
+                                    <span>{{ house_info.title if house_info else '暂无房源信息' }}</span>
                                 </div>
                                 <div class="house-info-item">
                                     <span>💰</span>
-                                    <span>{{ current_contact.house_price }}</span>
+                                    <span>{{ (house_info.rent|string + ' 元/月') if house_info else '' }}</span>
                                 </div>
                                 <div class="house-info-item">
                                     <span>📐</span>
-                                    <span>{{ current_contact.house_area }}</span>
+                                    <span>{{ (house_info.area|string + ' m²') if house_info else '' }}</span>
                                 </div>
                             </div>
                         </div>
