@@ -126,6 +126,7 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # 统一用receiver
     content = db.Column(db.Text, nullable=False)
     is_auto_reply = db.Column(db.Boolean, default=False)  # 新增：是否自动回复
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     sent_at = db.Column(db.DateTime, default=datetime.utcnow)  # 统一用sent_at
 

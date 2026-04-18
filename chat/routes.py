@@ -47,7 +47,7 @@ def _require_login():
     return None
 
 
-def generate_auto_reply(user_message, contact_user):
+def generate_auto_reply(user_message, contact_user, post=None):
     """
     智能自动回复
     user_message: 用户发送的消息内容
@@ -55,8 +55,9 @@ def generate_auto_reply(user_message, contact_user):
     """
     message_lower = user_message.lower()
 
-    # 尝试获取对方的帖子信息（取最新一条）
-    post = Post.query.filter_by(user_id=contact_user.id).order_by(Post.created_at.desc()).first()
+    # 优先使用传入的 post，没有则取对方最新帖子
+    if not post:
+        post = Post.query.filter_by(user_id=contact_user.id).order_by(Post.created_at.desc()).first()
 
     # 如果有帖子，使用帖子信息；否则使用默认信息
     if post:
@@ -139,13 +140,20 @@ def chat_with_contact(contact_id):
     current_user_id = _current_user_id()
     current_contact = User.query.get_or_404(contact_id)
 
+    from models import Post
     post_id = request.args.get('post_id', type=int)
-    house_info = None
-    if post_id:
-        from models import Post
-        post = Post.query.get(post_id)
-        if post:
-            house_info = post
+    if not post_id:
+        # 从历史消息中找最近一条带 post_id 的消息
+        recent_msg = Message.query.filter(
+            db.or_(
+                db.and_(Message.sender_id == current_user_id, Message.receiver_id == contact_id),
+                db.and_(Message.sender_id == contact_id, Message.receiver_id == current_user_id)
+            ),
+            Message.post_id.isnot(None)
+        ).order_by(Message.sent_at.desc()).first()
+        if recent_msg:
+            post_id = recent_msg.post_id
+    house_info = Post.query.get(post_id) if post_id else None
 
     # 获取所有联系人（同上）
     sent_to = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
@@ -160,6 +168,10 @@ def chat_with_contact(contact_id):
     contacts = []
     if contact_ids:
         contacts = User.query.filter(User.id.in_(contact_ids)).all()
+
+    # 确保当前聊天对象也在联系人列表里（首次私信时没有历史消息）
+    if contact_id not in contact_ids:
+        contacts.insert(0, current_contact)
 
     for contact in contacts:
         last_msg = Message.query.filter(
@@ -219,6 +231,7 @@ def send_message():
     current_user_id = _current_user_id()
     receiver_id = data.get('receiver_id')  # 统一用receiver_id
     content = data.get('content')
+    post_id = data.get('post_id')
 
     if not receiver_id or not content:
         return jsonify({'error': '参数错误'}), 400
@@ -229,6 +242,7 @@ def send_message():
         sender_id=current_user_id,
         receiver_id=receiver_id,
         content=content,
+        post_id=post_id,
         is_auto_reply=False
     )
     db.session.add(new_message)
@@ -240,13 +254,15 @@ def send_message():
     if receiver:
         time.sleep(0.5)  # 模拟输入延迟
 
-        auto_reply_content = generate_auto_reply(content, receiver)
+        post = Post.query.get(post_id) if post_id else None
+        auto_reply_content = generate_auto_reply(content, receiver, post=post)
 
         print(f"DEBUG auto_reply: sender_id={receiver_id}, receiver_id={current_user_id}")
         auto_reply_message = Message(
             sender_id=receiver_id,
             receiver_id=current_user_id,
             content=auto_reply_content,
+            post_id=post_id,
             is_auto_reply=True
         )
         db.session.add(auto_reply_message)
@@ -292,12 +308,16 @@ def booking():
     today = date.today()
     booked_times_today = [b.visit_time for b in Booking.query.filter_by(visit_date=today).all()]
 
+    from models import Post
+    post_id = request.args.get('post_id', type=int)
+    post = Post.query.get(post_id) if post_id else None
     return render_template('/chat/booking.html',
                            dates=available_dates,
                            times=available_times,
                            bookings=my_bookings,
                            booked_times=booked_times_today,
-                           today=today)
+                           today=today,
+                           post=post)
 
 
 @chat_bp.route('/make_booking', methods=['POST'])

@@ -6,7 +6,7 @@
     <title>预约看房</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; padding-bottom: 80px; }
         .container { max-width: 1000px; margin: 0 auto; }
         h1, h2 { color: #333; margin: 20px 0; }
         
@@ -126,6 +126,15 @@
     <h2>🏠 预约看房</h2>
     <form action="{{ url_for('chat.make_booking') }}" method="POST">
 
+    {% if post %}
+    <input type="hidden" name="house_title" value="{{ post.title }}">
+    <input type="hidden" name="post_id" value="{{ post.id }}">
+    <div class="alert alert-info" style="background:#fff3e0; border:1px solid #ff9800; border-radius:8px; padding:12px; margin-bottom:16px;">
+        🏠 预约房源：<strong>{{ post.title }}</strong>
+        {% if post.rent %} · {{ post.rent }} 元/月{% endif %}
+    </div>
+    {% endif %}
+
         <!-- 日历式日期选择 -->
         <div class="form-group">
             <label>选择日期：</label>
@@ -178,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 表单提交验证
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    document.querySelector('.booking-form form').addEventListener('submit', function(e) {
         if (!dateInput.value) {
             e.preventDefault();
             alert('请先选择日期！');
