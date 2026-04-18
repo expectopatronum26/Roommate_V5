@@ -1,6 +1,6 @@
 # app.py
 import sys
-from flask import Flask, redirect, url_for, session
+from flask import Flask, redirect, url_for, session, flash, request
 from config import Config
 from models import db
 
@@ -45,6 +45,11 @@ def create_app():
         if 'user_id' in session:
             return redirect(url_for('posts.list_posts'))
         return redirect(url_for('auth.login'))
+
+    @app.errorhandler(413)
+    def request_entity_too_large(error):
+        flash('上传文件过大，请压缩后重试')
+        return redirect(request.referrer or url_for('posts.list_posts'))
 
     return app
 

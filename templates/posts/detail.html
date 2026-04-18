@@ -57,7 +57,11 @@
     <div class="action-buttons">
     <!-- 收藏按钮 -->
     <form method="post" action="{{ url_for('posts.toggle_favorite', post_id=post.id) }}" style="display: inline;">
-        <button type="submit" class="btn-action btn-unfavorite">取消收藏</button>
+        {% if is_favorite %}
+            <button type="submit" class="btn-action btn-unfavorite">取消收藏</button>
+        {% else %}
+            <button type="submit" class="btn-action btn-favorite">收藏</button>
+        {% endif %}
     </form>
         <a href="{{ url_for('chat.chat_with_contact', contact_id=post.user_id) }}"
         class="contact-btn">

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -390,6 +389,15 @@
         .messages-container::-webkit-scrollbar-thumb:hover {
             background: #999;
         }
+
+        .contact-avatar img,
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -406,7 +414,7 @@
                     {% for contact in contacts %}
                     <a href="/chat/{{ contact.id }}"
                        class="contact-item {% if current_contact and current_contact.id == contact.id %}active{% endif %}">
-                        <div class="contact-avatar">{{ contact.avatar }}</div>
+                        <div class="contact-avatar"><img src="{{ contact.avatar }}" alt="头像"></div>
                         <div class="contact-info">
                             <div class="contact-name">{{ contact.name }}</div>
                             <div class="contact-last-msg">{{ contact.last_message or '暂无消息' }}</div></div>
@@ -429,7 +437,7 @@
                 <!-- 👇 升级：聊天窗口顶部（增加房源信息和预约按钮） -->
                 <div class="chat-header">
                     <div class="header-left">
-                        <div class="contact-avatar">{{ current_contact.avatar }}</div>
+                        <div class="contact-avatar"><img src="{{ current_contact.avatar }}" alt="头像"></div>
                         <div class="header-info">
                             <div class="header-contact-name">{{ current_contact.name }}</div>
                             <!-- 房源信息 -->
@@ -458,12 +466,12 @@
                 <!-- 消息显示区 -->
                 <div class="messages-container" id="messagesContainer">
                     {% for msg in messages %}
-                    <div class="message {% if msg.sender_id == 1 %}sent{% else %}received{% endif %}">
+                    <div class="message {% if msg.sender_id == current_user_id %}sent{% else %}received{% endif %}">
                         <div class="message-avatar">
-                            {% if msg.sender_id == 1 %}
+                            {% if msg.sender_id == current_user_id %}
                 👤
                             {% else %}
-                                {{ current_contact.avatar }}
+                                <img src="{{ current_contact.avatar }}" alt="头像">
                             {% endif %}
                         </div>
                         <div class="message-content">
@@ -509,8 +517,7 @@
             }
 
             const data = {
-                sender_id: 1,
-                recipient_id: currentContactId,
+                receiver_id: currentContactId,
                 content: content,
                 is_auto_reply: false
             };
@@ -520,7 +527,7 @@
             sendBtn.disabled = true;
             sendBtn.textContent = '发送中...';
 
-            fetch('/api/send_message', {
+            fetch('/chat/api/send_message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -540,6 +547,10 @@
                     } else {
                         location.reload();
                     }
+                } else {
+                    alert('发送失败，请重试');
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = '发送';
                 }
             })
             .catch(error => {
@@ -560,4 +571,5 @@
     </script>
 </body>
 </html>
+
 

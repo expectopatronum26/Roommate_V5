@@ -125,7 +125,8 @@ def chat_home():
 
     return render_template('chat.html', contacts=contacts,
                            current_contact=None,
-                           messages=[])
+                           messages=[],
+                           current_user_id=current_user_id)
 
 
 @chat_bp.route('/<int:contact_id>')
@@ -178,7 +179,8 @@ def chat_with_contact(contact_id):
     return render_template('chat.html',
                            contacts=contacts,
                            current_contact=current_contact,
-                           messages=messages_dict)
+                           messages=messages_dict,
+                           current_user_id=current_user_id)
 
 
 @chat_bp.route('/api/messages/<int:contact_id>', methods=['GET'])
@@ -213,6 +215,7 @@ def send_message():
         return jsonify({'error': '参数错误'}), 400
 
     # 保存用户消息
+    print(f"DEBUG: current_user_id={current_user_id}, receiver_id={receiver_id}")
     new_message = Message(
         sender_id=current_user_id,
         receiver_id=receiver_id,
@@ -230,6 +233,7 @@ def send_message():
 
         auto_reply_content = generate_auto_reply(content, receiver)
 
+        print(f"DEBUG auto_reply: sender_id={receiver_id}, receiver_id={current_user_id}")
         auto_reply_message = Message(
             sender_id=receiver_id,
             receiver_id=current_user_id,

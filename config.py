@@ -21,7 +21,8 @@ class Config:
 
     # 文件上传配置
     UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MBALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32MB
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
     # DeepSeek AI配置
     DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
