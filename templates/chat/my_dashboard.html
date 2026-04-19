@@ -254,7 +254,12 @@
             <div class="booking-card">
                 <!-- 左侧信息 -->
                 <div class="booking-info">
-                    <div class="house-title">🏠 {{ booking.house_title }}
+                    <div class="house-title">🏠
+                        {% if booking.post_id %}
+                            <a href="/posts/{{ booking.post_id }}" style="color:#697386; text-decoration:none;">{{ booking.house_title }}</a>
+                        {% else %}
+                            {{ booking.house_title }}
+                        {% endif %}
                         {% if booking.visit_date >= today %}
                             <span class="status-tag tag-active">待看房</span>
                         {% else %}
@@ -281,10 +286,14 @@
                 
                 <!-- 右侧按钮 -->
                 <div class="action-zone">
-                    <a href="/chat" class="btn btn-chat">💬 联系房东</a>
-                    
+                    {% if booking.post_id %}
+                        <a href="/chat/{{ booking.post_id }}" class="btn btn-chat">💬 联系房东</a>
+                    {% else %}
+                        <a href="/chat/" class="btn btn-chat">💬 联系房东</a>
+                    {% endif %}
+
                     {% if booking.visit_date >= today %}
-                        <a href="/chat/mydashboard"
+                        <a href="/cancel_booking/{{ booking.id }}?source=dashboard"
                            class="btn btn-cancel"
                            onclick="return confirm('确定要取消《{{ booking.house_title }}》的预约吗？')">❌ 取消预约
                         </a>
