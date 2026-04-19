@@ -254,8 +254,16 @@ def posts_list():
 
     posts = Post.query.filter_by(user_id=user.id).order_by(Post.created_at.desc()).all()
 
-    return render_template('/profile/posts_list.html', user=user, posts=posts)
-
+    posts_with_cover = []
+    for post in posts:
+        # 获取第一张图片作为封面
+        cover_image = post.images.first()
+        posts_with_cover.append({
+            'post': post,  # 保留完整的post对象
+            'cover_url': cover_image.image_url if cover_image else 'https://picsum.photos/seed/default/400/300'
+        })
+    return render_template('profile/posts_list.html', user=user,
+                           posts=posts_with_cover)
 
 @profile_bp.route('/favorites_list')
 def favorites_list():
@@ -289,30 +297,10 @@ def appointments_list():
     if not user:
         return redirect(url_for('auth.login'))
 
-    appointments = []
+    #直接查询 Booking 对象列表（保持完整对象，供模板使用）
+    from datetime import date
+    bookings = Booking.query.filter_by(user_id=user.id).order_by(Booking.visit_date.desc()).all()
+    today = date.today()
 
-    appts = Appointment.query.filter_by(user_id=user.id).all()
-    for appt in appts:
-        post = Post.query.get(appt.post_id) if appt.post_id else None
-        appointments.append({
-            'id': appt.id,
-            'post_title': post.title if post else '房源',
-            'date': appt.appointment_date.strftime('%Y-%m-%d'),
-            'time_slot': appt.appointment_time_slot,
-            'status': appt.status
-        })
-
-    bookings = Booking.query.filter_by(user_id=user.id).all()
-    for booking in bookings:
-        appointments.append({
-            'id': booking.id,
-            'post_title': booking.house_title,
-            'date': booking.visit_date.strftime('%Y-%m-%d'),
-            'time_slot': booking.visit_time,
-            'status': booking.status
-        })
-
-    appointments.sort(key=lambda x: x['date'], reverse=True)
-
-    return render_template('appointments_list.html', user=user, appointments=appointments)
-
+    #渲染 my_dashboard.html 模板
+    return redirect(url_for('chat.dashboard'))

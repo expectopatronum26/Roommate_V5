@@ -6,6 +6,7 @@ import re
 from html import escape
 from decimal import Decimal, InvalidOperation
 from uuid import uuid4
+from sqlalchemy.orm import joinedload
 
 from flask import abort, current_app, flash, jsonify, redirect, render_template, request, url_for, session
 from werkzeug.utils import secure_filename
@@ -20,7 +21,7 @@ from posts import posts_bp
 
 DEFAULT_IMAGE_URL = "https://picsum.photos/seed/roommate-default/900/600"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
-DEEPSEEK_MODEL = "deepseek-chat1"
+DEEPSEEK_MODEL = "deepseek-chat"
 MAX_CONTEXT_CHARS = 8000
 AI_SYSTEM_PROMPT = """你是\"港硕找舍友\"平台的AI搜索助手。
 
@@ -180,7 +181,8 @@ def list_posts():
     max_rent = _to_decimal(request.args.get("max_rent"))
     layout = request.args.get("layout", "").strip()
 
-    query = Post.query.order_by(Post.created_at.desc())
+    query = Post.query.options(joinedload(Post.author)).order_by(Post.created_at.desc())
+
     if location:
         query = query.filter(Post.location == location)
     if nearby_school:

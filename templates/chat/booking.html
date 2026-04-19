@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </p>
                     </div><div>
                         {% if booking.visit_date >= today %}
-                            <a href="/cancel_booking/{{ booking.id }}?source=booking"
+                            <a href="/chat/cancel_booking/{{ booking.id }}?source=booking"
                                class="btn btn-danger"
                                onclick="return confirm('确定要取消这个预约吗？')">
                                 ❌ 取消预约

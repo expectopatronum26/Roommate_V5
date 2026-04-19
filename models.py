@@ -138,7 +138,9 @@ class Message(db.Model):
             'content': self.content,
             'is_auto_reply': self.is_auto_reply,
             'is_read': self.is_read,
-            'sent_at': self.sent_at.strftime('%Y-%m-%d %H:%M:%S')
+            'sent_at': self.sent_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'timestamp': self.sent_at.strftime('%H:%M'),  #供前端显示时间
+            'post_id': self.post_id  #供前端追踪房源信息
         }
 
 
@@ -171,6 +173,7 @@ class Booking(db.Model):
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    post = db.relationship('Post', backref='bookings', lazy='joined')
 
 class Favorite(db.Model):
     """收藏表"""

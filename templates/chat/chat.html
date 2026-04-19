@@ -415,7 +415,7 @@
             <div class="contacts-list">
                 {% if contacts %}
                     {% for contact in contacts %}
-                    <a href="/chat/{{ contact.id }}"
+                    <a href="/chat/{{ contact.id }}{% if contact.related_post_id %}?post_id={{ contact.related_post_id }}{% endif %}"
                        class="contact-item {% if current_contact and current_contact.id == contact.id %}active{% endif %}">
                         <div class="contact-avatar"><img src="{{ contact.avatar }}" alt="头像"></div>
                         <div class="contact-info">

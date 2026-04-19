@@ -93,8 +93,13 @@ def chat_home():
 
     # 获取所有与当前用户有聊天记录的联系人
     # 方法：查询所有消息，提取对方ID，去重
-    sent_to = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
-    received_from = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
+    sent_to = db.session.query(Message.receiver_id).filter(
+        Message.sender_id == current_user_id
+    ).distinct().all()
+
+    received_from = db.session.query(Message.sender_id).filter(
+        Message.receiver_id == current_user_id
+    ).distinct().all()
 
     contact_ids = set()
     for row in sent_to:
@@ -107,7 +112,7 @@ def chat_home():
     if contact_ids:
         contacts = User.query.filter(User.id.in_(contact_ids)).all()
 
-    # 为每个联系人添加最后一条消息
+    # 为每个联系人添加最后一条消息和关联的post_id
     for contact in contacts:
         last_msg = Message.query.filter(
             ((Message.sender_id == current_user_id) & (Message.receiver_id == contact.id)) |
@@ -120,6 +125,21 @@ def chat_home():
         else:
             contact.last_message = ""
             contact.last_message_time = datetime.now()
+
+        #查找最近一条带post_id的消息
+        msg_with_post = Message.query.filter(
+            ((Message.sender_id == current_user_id) & (Message.receiver_id == contact.id)) |
+            ((Message.sender_id == contact.id) & (Message.receiver_id == current_user_id)),
+                Message.post_id.isnot(None)
+        ).order_by(Message.sent_at.desc()).first()
+
+        contact.related_post_id = msg_with_post.post_id if msg_with_post else None
+
+    contacts.sort(key=lambda x: x.last_message_time, reverse=True)
+
+    return render_template('chat.html', contacts=contacts, current_contact=None,
+                            messages=[],
+                            current_user_id=current_user_id)
 
     # 按时间排序
     contacts.sort(key=lambda x: x.last_message_time, reverse=True)
@@ -156,8 +176,13 @@ def chat_with_contact(contact_id):
     house_info = Post.query.get(post_id) if post_id else None
 
     # 获取所有联系人（同上）
-    sent_to = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
-    received_from = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
+    sent_to = db.session.query(Message.receiver_id).filter(
+        Message.sender_id == current_user_id
+    ).distinct().all()
+
+    received_from = db.session.query(Message.sender_id).filter(
+        Message.receiver_id == current_user_id
+    ).distinct().all()
 
     contact_ids = set()
     for row in sent_to:
@@ -175,8 +200,10 @@ def chat_with_contact(contact_id):
 
     for contact in contacts:
         last_msg = Message.query.filter(
-            ((Message.sender_id == current_user_id) & (Message.receiver_id == contact.id)) |
-            ((Message.sender_id == contact.id) & (Message.receiver_id == current_user_id))
+            db.or_(
+                db.and_(Message.sender_id == current_user_id, Message.receiver_id == contact.id),
+                db.and_(Message.sender_id == contact.id, Message.receiver_id == current_user_id)
+            )
         ).order_by(Message.sent_at.desc()).first()
 
         if last_msg:
@@ -185,6 +212,17 @@ def chat_with_contact(contact_id):
         else:
             contact.last_message = ""
             contact.last_message_time = datetime.now()
+
+        #查找最近一条带post_id的消息
+        msg_with_post = Message.query.filter(
+            db.or_(
+                db.and_(Message.sender_id == current_user_id, Message.receiver_id == contact.id),
+                db.and_(Message.sender_id == contact.id, Message.receiver_id == current_user_id)
+            ),
+            Message.post_id.isnot(None)
+        ).order_by(Message.sent_at.desc()).first()
+
+        contact.related_post_id = msg_with_post.post_id if msg_with_post else None
 
     contacts.sort(key=lambda x: x.last_message_time, reverse=True)
 
@@ -379,7 +417,10 @@ def cancel_booking(booking_id):
     # 验证是否是本人的预约
     if booking.user_id != current_user_id:
         flash('无权取消此预约')
-        return redirect(url_for('chat.booking'))
+        if source == 'dashboard':
+            return redirect(url_for('profile.appointments_list'))
+        else:
+            return redirect(url_for('chat.booking'))
 
     booking_date = str(booking.visit_date)
     booking_time = booking.visit_time
@@ -406,7 +447,17 @@ def dashboard():
     all_bookings = Booking.query.filter_by(user_id=current_user_id).order_by(Booking.visit_date.desc()).all()
     today = date.today()
 
+    user = User.query.get(current_user_id)
     return render_template('my_dashboard.html',
+                           user=user,
                            bookings=all_bookings,
                            today=today)
+
+
+
+
+
+
+
+
 

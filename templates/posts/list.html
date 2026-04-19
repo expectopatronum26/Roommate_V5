@@ -69,6 +69,33 @@
         flex: 0 1 5em;
         min-width: 3em;
     }
+    .post-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #e8e8e8;
+    }
+
+    .author-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ff6b35;
+    flex-shrink: 0;
+    }
+
+    .author-name {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+    }
+
+    .card:hover .author-name {
+    color: #ff6b35;
+    }
 </style>
 
 <div class="card" id="ai-assistant-card">
@@ -239,7 +266,7 @@
             }
 
             setAssistantLoading(true);
-            fetch("/api/chat", {
+            fetch("/posts/api/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -282,6 +309,12 @@
                 <h3><a href="{{ url_for('posts.post_detail', post_id=item.post.id) }}">{{ item.post.title }}</a></h3>
                 <p>月租：{{ item.post.rent }}</p>
                 <p>位置：{{ item.post.location }}</p>
+                <div class="post-author">
+                    <img src="{{ item.post.author.avatar }}"
+                         alt="{{ item.post.author.nickname or item.post.author.username }}"
+                         class="author-avatar">
+                    <span class="author-name">{{ item.post.author.nickname or item.post.author.username }}</span>
+                </div>
             </div>
         {% endfor %}
     </div>

@@ -33,7 +33,7 @@ def login():
             db.session.commit()
 
             flash('登录成功！')
-            return redirect(url_for('post.list_posts'))
+            return redirect(url_for('posts.list_posts'))
         else:
             flash('用户名或密码错误')
 

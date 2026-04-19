@@ -1,5 +1,39 @@
-<nav style="position:fixed; bottom:0; left:0; right:0; background:#ff6633; padding:12px 20px; display:flex; align-items:center; justify-content:center; gap:40px; color:white; font-size:16px; z-index:9999;">
-    <a href="/" style="color:white; text-decoration:none; font-weight:bold;">🏠 找舍友</a>
-    <a href="/chat/" style="color:white; text-decoration:none;">💬 消息</a>
-    <a href="/profile" style="color:white; text-decoration:none;">👤 我</a>
+<!-- navbar.html -->
+<style>
+    /* 为所有页面添加顶部内边距，避免被导航栏遮挡 */
+    body {
+        padding-top: 60px !important;  /* 导航栏高度 + 一点余量 */
+    }
+
+    /* 针对聊天页面的特殊处理 */
+    .chat-container {
+        height: calc(100vh - 60px) !important;
+    }
+</style>
+
+<nav style="position:fixed; top:0; left:0; right:0; background:#ff6633; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; color:white; font-size:16px; z-index:9999; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+    <!-- 左侧：网站标题/Logo -->
+    <div style="font-size:20px; font-weight:bold; letter-spacing:1px;">
+        🏠 租房助手
+    </div>
+
+    <!-- 右侧：导航按钮 -->
+    <div style="display:flex; align-items:center; gap:30px;">
+        <a href="/" style="color:white; text-decoration:none; font-weight:500; transition:opacity 0.3s;">
+            🏠 找舍友
+        </a>
+        <a href="/chat/" style="color:white; text-decoration:none; font-weight:500; transition:opacity 0.3s;">
+            💬 消息
+        </a>
+        <a href="/profile" style="color:white; text-decoration:none; font-weight:500; transition:opacity 0.3s;">
+            👤 我
+        </a>
+    </div>
 </nav>
+
+<style>
+    nav a:hover {
+        opacity: 0.8;
+    }
+</style>
+

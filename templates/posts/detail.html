@@ -4,6 +4,17 @@
 
 {% block content %}
 <div class="card">
+    <!--发帖人信息（在标题上方，紧凑样式）-->
+    <div class="post-author-top">
+        <img src="{{ post.author.avatar }}"
+             alt="{{ post.author.nickname or post.author.username }}"
+             class="author-avatar-compact">
+        <span class="author-name-compact">{{ post.author.nickname or post.author.username }}</span>
+        {% if post.author.auth_status == 'approved' %}
+            <span class="verified-badge-compact">已认证</span>
+        {% endif %}
+        <span class="post-date-compact">{{ post.created_at.strftime('%Y-%m-%d') }}</span>
+    </div>
     <div class="post-header">
         <h2>{{ post.title }}</h2>
         <div class="post-actions-top">
@@ -13,7 +24,6 @@
             </form>
         </div>
     </div>
-    <p class="muted">发布人：<a href="/user/{{ post.user_id }}">{{ post.author.username }}</a> ｜ 发布时间：{{ post.created_at }}</p>
 
     <div id="post-carousel" class="post-carousel">
         <div id="carousel-track" class="carousel-track">
@@ -74,6 +84,53 @@
 
 
 <style>
+    .post-author-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 15px;
+    }
+
+    .author-avatar-compact {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ff6b35;
+    flex-shrink: 0;
+    }
+
+    .author-name-compact {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    }
+
+    .verified-badge-compact {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: #1890ff;  /* 蓝色，像参考图 */
+    color: white;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    }
+
+    .post-date-compact {
+    margin-left: auto;  /* 推到最右边 */
+    font-size: 13px;
+    color: #999;
+    }
+
+    /* 响应式：小屏幕上隐藏日期 */
+    @media (max-width: 600px) {
+       .post-date-compact {
+          display: none;
+       }
+    }
     .post-header {
         display: flex;
         justify-content: space-between;
